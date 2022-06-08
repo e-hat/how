@@ -165,7 +165,7 @@ func writeEditor() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: how <topic>|-- CMD\nwhere CMD is one of [help, write]")
+	fmt.Fprintln(os.Stderr, "usage: how <topic>|-- help|-- write [<name> <description>]")
 }
 
 type searchArgs struct {
