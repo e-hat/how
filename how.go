@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"os"
 	"os/exec"
 	"sort"
+	"strings"
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
 )
@@ -32,7 +34,9 @@ func fetchRepo() (map[string]TopicEntry, bool) {
 	}
 
 	content, err := ioutil.ReadFile(path)
-	if err != nil {
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return make(map[string]TopicEntry), true
+	} else if err != nil {
 		return make(map[string]TopicEntry), false
 	}
 
@@ -122,43 +126,42 @@ func write(entry TopicEntry) {
 }
 
 func editorPrompt() (string, bool) {
-  editor, ok := os.LookupEnv("EDITOR")
-  if !ok {
-    fmt.Fprintln(os.Stderr, "error: $EDITOR env var not set")
-  }
+	editor, ok := os.LookupEnv("EDITOR")
+	if !ok {
+		fmt.Fprintln(os.Stderr, "error: $EDITOR env var not set")
+	}
 
-  cmd := exec.Command(editor, "/tmp/how_tmp.txt")
-  cmd.Stdin = os.Stdin
-  cmd.Stdout = os.Stdout
-  cmd.Stderr = os.Stderr
-  if err := cmd.Run(); err != nil {
-    fmt.Println(err)
-    return "", false
-  }
+	cmd := exec.Command(editor, "/tmp/how_tmp.txt")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return "", false
+	}
 
-  res, err := ioutil.ReadFile("/tmp/how_tmp.txt")
-  if err != nil {
-    return "", false
-  }
+	res, err := ioutil.ReadFile("/tmp/how_tmp.txt")
+	if err != nil {
+		return "", false
+	}
 
-  exec.Command("rm", "/tmp/how_tmp.txt").Run()
+	exec.Command("rm", "/tmp/how_tmp.txt").Run()
 
-  return string(res[:]), true
+	return strings.TrimSpace(string(res[:])), true
 }
 
 func writeEditor() {
-  name, ok := editorPrompt()
-  if !ok {
-    fmt.Fprintln(os.Stderr, "how: aborted")
-    return
-  }
+	name, ok := editorPrompt()
+	if !ok {
+		fmt.Fprintln(os.Stderr, "how: aborted")
+		return
+	}
 
-  desc, ok := editorPrompt()
-  if !ok {
-    fmt.Fprintln(os.Stderr, "how: aborted")
-  }
+	desc, ok := editorPrompt()
+	if !ok {
+		fmt.Fprintln(os.Stderr, "how: aborted")
+	}
 
-  write(TopicEntry{name, desc})
+	write(TopicEntry{name, desc})
 }
 
 func usage() {
