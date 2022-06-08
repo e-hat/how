@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"os/exec"
 	"sort"
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -120,6 +121,46 @@ func write(entry TopicEntry) {
 	}
 }
 
+func editorPrompt() (string, bool) {
+  editor, ok := os.LookupEnv("EDITOR")
+  if !ok {
+    fmt.Fprintln(os.Stderr, "error: $EDITOR env var not set")
+  }
+
+  cmd := exec.Command(editor, "/tmp/how_tmp.txt")
+  cmd.Stdin = os.Stdin
+  cmd.Stdout = os.Stdout
+  cmd.Stderr = os.Stderr
+  if err := cmd.Run(); err != nil {
+    fmt.Println(err)
+    return "", false
+  }
+
+  res, err := ioutil.ReadFile("/tmp/how_tmp.txt")
+  if err != nil {
+    return "", false
+  }
+
+  exec.Command("rm", "/tmp/how_tmp.txt").Run()
+
+  return string(res[:]), true
+}
+
+func writeEditor() {
+  name, ok := editorPrompt()
+  if !ok {
+    fmt.Fprintln(os.Stderr, "how: aborted")
+    return
+  }
+
+  desc, ok := editorPrompt()
+  if !ok {
+    fmt.Fprintln(os.Stderr, "how: aborted")
+  }
+
+  write(TopicEntry{name, desc})
+}
+
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: how <topic>|-- CMD\nwhere CMD is one of [help, write]")
 }
@@ -133,12 +174,15 @@ type writeArgs struct {
 	desc string
 }
 
+type writeEditorArgs struct{}
+
 type ArgType int64
 
 const (
 	ERROR ArgType = iota
 	SEARCH
 	WRITE
+	WRITE_EDITOR
 )
 
 func parseArgs() (ArgType, interface{}) {
@@ -153,6 +197,8 @@ func parseArgs() (ArgType, interface{}) {
 
 		if subargs[0] == "write" && len(subargs) == 3 {
 			return WRITE, writeArgs{name: subargs[1], desc: subargs[2]}
+		} else if subargs[0] == "write" && len(subargs) == 1 {
+			return WRITE_EDITOR, writeEditorArgs{}
 		}
 	}
 
@@ -171,5 +217,7 @@ func main() {
 	case WRITE:
 		args := value.(writeArgs)
 		write(TopicEntry{Name: args.name, Desc: args.desc})
+	case WRITE_EDITOR:
+		writeEditor()
 	}
 }
