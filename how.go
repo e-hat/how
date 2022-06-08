@@ -10,7 +10,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: how <topic>|-- CMD\nwhere CMD is one of [help, write, serve]")
+	fmt.Fprintln(os.Stderr, "usage: how <topic>|-- CMD\nwhere CMD is one of [help, write, serve, push]")
 }
 
 type searchArgs struct {
