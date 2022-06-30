@@ -6,6 +6,7 @@ import (
 
 	"how/repo"
 	"how/server"
+  "how/client"
 )
 
 func usage() {
@@ -23,7 +24,9 @@ type writeArgs struct {
 
 type writeEditorArgs struct{}
 
-type serveEditorArgs struct{}
+type serveArgs struct{}
+
+type pushArgs struct{}
 
 type ArgType int64
 
@@ -33,6 +36,7 @@ const (
 	WRITE
 	WRITE_EDITOR
 	SERVE_REPO
+  PUSH
 )
 
 func parseArgs() (ArgType, interface{}) {
@@ -50,8 +54,10 @@ func parseArgs() (ArgType, interface{}) {
 		} else if subargs[0] == "write" && len(subargs) == 1 {
 			return WRITE_EDITOR, writeEditorArgs{}
 		} else if subargs[0] == "serve" && len(subargs) == 1 {
-			return SERVE_REPO, serveEditorArgs{}
-		}
+			return SERVE_REPO, serveArgs{}
+		} else if subargs[0] == "push" && len(subargs) == 1 {
+      return PUSH, pushArgs{}
+    }
 	}
 
 	usage()
@@ -68,10 +74,12 @@ func main() {
 		repo.Search(args.topic)
 	case WRITE:
 		args := value.(writeArgs)
-		repo.Write(repo.TopicEntry{Name: args.name, Desc: args.desc})
+		repo.WriteEntry(repo.TopicEntry{Name: args.name, Desc: args.desc})
 	case WRITE_EDITOR:
 		repo.WriteEditor()
 	case SERVE_REPO:
 		server.StartHowServer()
+  case PUSH:
+    client.Push()
 	}
 }

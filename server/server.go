@@ -2,24 +2,61 @@ package server
 
 import (
 	"io"
-	"log"
 	"net/http"
-	"os"
+  "fmt"
+  "encoding/json"
+
+  repoUtil "how/repo"
 )
 
 func repoEndpoint(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		io.WriteString(w, "got your GET!")
+    repo, ok := repoUtil.Fetch()
+    if !ok {
+      fmt.Println("how: error: could not fetch repo")
+      w.WriteHeader(http.StatusInternalServerError)
+      w.Write([]byte("500 - Couldn't fetch repo from disk."))
+      return
+    }
+
+    repoJson, _ := json.Marshal(repo)
+    w.WriteHeader(http.StatusOK)
+    w.Write(repoJson)
 	case "PUT":
-		io.WriteString(w, "got your put")
+    body, err := io.ReadAll(r.Body)
+    if err != nil {
+      fmt.Println("how: error: could not read request")
+      w.WriteHeader(http.StatusBadRequest)
+      w.Write([]byte("400 - Couldn't read request"))
+      return
+    }
+
+    repo, ok := repoUtil.Unmarshal(body)
+    if !ok {
+      fmt.Println("how: error: could not parse repo json")
+      w.WriteHeader(http.StatusBadRequest)
+      w.Write([]byte("400 - Couldn't parse the repo's json."))
+      return
+    }
+
+    ok = repoUtil.Write(&repo)
+    if !ok {
+      fmt.Println("how: error: could not write repo")
+      w.WriteHeader(http.StatusInternalServerError)
+      w.Write([]byte("500 - Couldn't write the repo to disk."))
+      return
+    }
+
+    w.WriteHeader(http.StatusOK)
 	}
 }
 
-func StartHowServer() {
-	logger := log.New(os.Stdout, "http:  ", log.LstdFlags)
-	logger.Println("How Repository server starting...")
+const PORT = 8000
 
+func StartHowServer() {
+  fmt.Println("how: starting server")
 	http.HandleFunc("/", repoEndpoint)
-	log.Fatal(http.ListenAndServe(":8000", nil))
+
+  http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
 }

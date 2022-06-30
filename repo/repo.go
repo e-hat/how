@@ -19,7 +19,7 @@ type TopicEntry struct {
 	Desc string `json:"desc"`
 }
 
-func repoPath() (string, bool) {
+func Path() (string, bool) {
 	if dirname, err := os.UserHomeDir(); err == nil {
 		return fmt.Sprintf("%s/.how_repo/repo.json", dirname), true
 	} else {
@@ -27,8 +27,18 @@ func repoPath() (string, bool) {
 	}
 }
 
-func fetchRepo() (map[string]TopicEntry, bool) {
-	path, ok := repoPath()
+func Unmarshal(content []byte) (map[string]TopicEntry, bool) {
+  var repo map[string]TopicEntry
+  err := json.Unmarshal(content, &repo)
+  if err != nil {
+    return make(map[string]TopicEntry), false
+  }
+
+  return repo, true
+}
+
+func Fetch() (map[string]TopicEntry, bool) {
+	path, ok := Path()
 	if !ok {
 		return make(map[string]TopicEntry), false
 	}
@@ -40,13 +50,7 @@ func fetchRepo() (map[string]TopicEntry, bool) {
 		return make(map[string]TopicEntry), false
 	}
 
-	var repo map[string]TopicEntry
-	err = json.Unmarshal(content, &repo)
-	if err != nil {
-		return make(map[string]TopicEntry), false
-	}
-
-	return repo, true
+  return Unmarshal(content)
 }
 
 func fuzzySearch(repo *map[string]TopicEntry, term string) []TopicEntry {
@@ -72,7 +76,7 @@ func fuzzySearch(repo *map[string]TopicEntry, term string) []TopicEntry {
 const SHORT_DESC_LEN = 20
 
 func Search(topic string) {
-	repo, ok := fetchRepo()
+	repo, ok := Fetch()
 	if !ok {
 		fmt.Fprintln(os.Stderr, "error: could not load information repository")
 	}
@@ -93,13 +97,13 @@ func Search(topic string) {
 	}
 }
 
-func writeRepo(repo *map[string]TopicEntry) bool {
+func Write(repo *map[string]TopicEntry) bool {
 	file, err := json.MarshalIndent(repo, "", " ")
 	if err != nil {
 		return false
 	}
 
-	path, ok := repoPath()
+	path, ok := Path()
 	if !ok {
 		return false
 	}
@@ -112,15 +116,15 @@ func writeRepo(repo *map[string]TopicEntry) bool {
 	return true
 }
 
-func Write(entry TopicEntry) {
-	repo, ok := fetchRepo()
+func WriteEntry(entry TopicEntry) {
+	repo, ok := Fetch()
 	if !ok {
 		fmt.Fprintln(os.Stderr, "error: could not load information repository")
 	}
 
 	repo[entry.Name] = entry
 
-	if !writeRepo(&repo) {
+	if !Write(&repo) {
 		fmt.Fprintln(os.Stderr, "error: could not write repository")
 	}
 }
@@ -161,5 +165,5 @@ func WriteEditor() {
 		fmt.Fprintln(os.Stderr, "how: aborted")
 	}
 
-	Write(TopicEntry{name, desc})
+	WriteEntry(TopicEntry{name, desc})
 }
