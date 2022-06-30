@@ -191,7 +191,7 @@ const (
 func parseArgs() (ArgType, interface{}) {
 	if len(os.Args) == 2 && os.Args[1] != "--" {
 		return SEARCH, searchArgs{topic: os.Args[1]}
-	} else if os.Args[1] == "--" {
+	} else if len(os.Args) > 1 && os.Args[1] == "--" {
 		subargs := os.Args[2:]
 		if len(subargs) == 0 {
 			usage()
