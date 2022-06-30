@@ -1,4 +1,4 @@
-package main
+package repo
 
 import (
 	"encoding/json"
@@ -71,7 +71,7 @@ func fuzzySearch(repo *map[string]TopicEntry, term string) []TopicEntry {
 
 const SHORT_DESC_LEN = 20
 
-func search(topic string) {
+func Search(topic string) {
 	repo, ok := fetchRepo()
 	if !ok {
 		fmt.Fprintln(os.Stderr, "error: could not load information repository")
@@ -112,7 +112,7 @@ func writeRepo(repo *map[string]TopicEntry) bool {
 	return true
 }
 
-func write(entry TopicEntry) {
+func Write(entry TopicEntry) {
 	repo, ok := fetchRepo()
 	if !ok {
 		fmt.Fprintln(os.Stderr, "error: could not load information repository")
@@ -149,7 +149,7 @@ func editorPrompt() (string, bool) {
 	return strings.TrimSpace(string(res[:])), true
 }
 
-func writeEditor() {
+func WriteEditor() {
 	name, ok := editorPrompt()
 	if !ok {
 		fmt.Fprintln(os.Stderr, "how: aborted")
@@ -161,66 +161,5 @@ func writeEditor() {
 		fmt.Fprintln(os.Stderr, "how: aborted")
 	}
 
-	write(TopicEntry{name, desc})
-}
-
-func usage() {
-	fmt.Fprintln(os.Stderr, "usage: how <topic>|-- help|-- write [<name> <description>]")
-}
-
-type searchArgs struct {
-	topic string
-}
-
-type writeArgs struct {
-	name string
-	desc string
-}
-
-type writeEditorArgs struct{}
-
-type ArgType int64
-
-const (
-	ERROR ArgType = iota
-	SEARCH
-	WRITE
-	WRITE_EDITOR
-)
-
-func parseArgs() (ArgType, interface{}) {
-	if len(os.Args) == 2 && os.Args[1] != "--" {
-		return SEARCH, searchArgs{topic: os.Args[1]}
-	} else if len(os.Args) > 1 && os.Args[1] == "--" {
-		subargs := os.Args[2:]
-		if len(subargs) == 0 {
-			usage()
-			return ERROR, nil
-		}
-
-		if subargs[0] == "write" && len(subargs) == 3 {
-			return WRITE, writeArgs{name: subargs[1], desc: subargs[2]}
-		} else if subargs[0] == "write" && len(subargs) == 1 {
-			return WRITE_EDITOR, writeEditorArgs{}
-		}
-	}
-
-	usage()
-	return ERROR, nil
-}
-
-func main() {
-	type_, value := parseArgs()
-	switch type_ {
-	case ERROR:
-		return
-	case SEARCH:
-		args := value.(searchArgs)
-		search(args.topic)
-	case WRITE:
-		args := value.(writeArgs)
-		write(TopicEntry{Name: args.name, Desc: args.desc})
-	case WRITE_EDITOR:
-		writeEditor()
-	}
+	Write(TopicEntry{name, desc})
 }

@@ -1,23 +1,25 @@
-package main
+package server
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 )
 
-func SayHi() {
-	fmt.Println("hi!")
-}
-
 func repoEndpoint(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Hello world!")
-	io.WriteString(w, "Right back at ya!")
+	switch r.Method {
+	case "GET":
+		io.WriteString(w, "got your GET!")
+	case "PUT":
+		io.WriteString(w, "got your put")
+	}
 }
 
-func main() {
-	http.HandleFunc("/", repoEndpoint)
+func StartHowServer() {
+	logger := log.New(os.Stdout, "http:  ", log.LstdFlags)
+	logger.Println("How Repository server starting...")
 
-	err := http.ListenAndServe(":8000", nil)
-	fmt.Println(err)
+	http.HandleFunc("/", repoEndpoint)
+	log.Fatal(http.ListenAndServe(":8000", nil))
 }
