@@ -28,6 +28,8 @@ type serveArgs struct{}
 
 type pushArgs struct{}
 
+type pullArgs struct{}
+
 type ArgType int64
 
 const (
@@ -37,6 +39,7 @@ const (
 	WRITE_EDITOR
 	SERVE_REPO
 	PUSH
+  PULL
 )
 
 func parseArgs() (ArgType, interface{}) {
@@ -57,7 +60,9 @@ func parseArgs() (ArgType, interface{}) {
 			return SERVE_REPO, serveArgs{}
 		} else if subargs[0] == "push" && len(subargs) == 1 {
 			return PUSH, pushArgs{}
-		}
+		} else if subargs[0] == "pull" && len(subargs) == 1 {
+      return PULL, pullArgs{}
+    }
 	}
 
 	usage()
@@ -81,5 +86,7 @@ func main() {
 		server.StartHowServer()
 	case PUSH:
 		client.Push()
+  case PULL:
+    client.Pull()
 	}
 }

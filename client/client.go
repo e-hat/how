@@ -47,3 +47,35 @@ func Push() {
 		return
 	}
 }
+
+func Pull() {
+	envUrl := os.Getenv("HOW_URL")
+	if len(envUrl) == 0 {
+		fmt.Fprintln(os.Stderr, "error: the HOW_URL env var was empty")
+		return
+	}
+
+	url := fmt.Sprintf("http://%s:%d/", envUrl, server.PORT)
+	res, err := http.Get(url)
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
+
+  repoJson, err := io.ReadAll(res.Body)
+  if err != nil {
+    fmt.Println("error: couldn't read response body")
+    return
+  }
+
+  repo, ok := repoUtil.Unmarshal(repoJson)
+  if !ok {
+    fmt.Println("error: did not receive valid repo as response")
+    return
+  }
+
+  ok = repoUtil.Write(&repo)
+  if !ok {
+    fmt.Println("error: failed to write repo to disk")
+  }
+}
