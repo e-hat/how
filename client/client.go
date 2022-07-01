@@ -13,6 +13,13 @@ import (
 	"how/server"
 )
 
+func askPermission() bool {
+	fmt.Print("Are you sure you want to overwrite the local repo? [yN] ")
+	input := make([]byte, 1)
+	os.Stdin.Read(input)
+	return input[0] == byte('y')
+}
+
 func Push() {
 	envUrl := os.Getenv("HOW_URL")
 	if len(envUrl) == 0 {
@@ -49,6 +56,12 @@ func Push() {
 }
 
 func Pull() {
+	ok := askPermission()
+	if !ok {
+		fmt.Println("operation aborted")
+		return
+	}
+
 	envUrl := os.Getenv("HOW_URL")
 	if len(envUrl) == 0 {
 		fmt.Fprintln(os.Stderr, "error: the HOW_URL env var was empty")
@@ -57,25 +70,25 @@ func Pull() {
 
 	url := fmt.Sprintf("http://%s:%d/", envUrl, server.PORT)
 	res, err := http.Get(url)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-  repoJson, err := io.ReadAll(res.Body)
-  if err != nil {
-    fmt.Println("error: couldn't read response body")
-    return
-  }
+	repoJson, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("error: couldn't read response body")
+		return
+	}
 
-  repo, ok := repoUtil.Unmarshal(repoJson)
-  if !ok {
-    fmt.Println("error: did not receive valid repo as response")
-    return
-  }
+	repo, ok := repoUtil.Unmarshal(repoJson)
+	if !ok {
+		fmt.Println("error: did not receive valid repo as response")
+		return
+	}
 
-  ok = repoUtil.Write(&repo)
-  if !ok {
-    fmt.Println("error: failed to write repo to disk")
-  }
+	ok = repoUtil.Write(&repo)
+	if !ok {
+		fmt.Println("error: failed to write repo to disk")
+	}
 }

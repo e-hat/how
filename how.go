@@ -39,7 +39,7 @@ const (
 	WRITE_EDITOR
 	SERVE_REPO
 	PUSH
-  PULL
+	PULL
 )
 
 func parseArgs() (ArgType, interface{}) {
@@ -61,8 +61,8 @@ func parseArgs() (ArgType, interface{}) {
 		} else if subargs[0] == "push" && len(subargs) == 1 {
 			return PUSH, pushArgs{}
 		} else if subargs[0] == "pull" && len(subargs) == 1 {
-      return PULL, pullArgs{}
-    }
+			return PULL, pullArgs{}
+		}
 	}
 
 	usage()
@@ -86,7 +86,7 @@ func main() {
 		server.StartHowServer()
 	case PUSH:
 		client.Push()
-  case PULL:
-    client.Pull()
+	case PULL:
+		client.Pull()
 	}
 }
