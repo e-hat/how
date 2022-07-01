@@ -28,13 +28,13 @@ func Path() (string, bool) {
 }
 
 func Unmarshal(content []byte) (map[string]TopicEntry, bool) {
-  var repo map[string]TopicEntry
-  err := json.Unmarshal(content, &repo)
-  if err != nil {
-    return make(map[string]TopicEntry), false
-  }
+	var repo map[string]TopicEntry
+	err := json.Unmarshal(content, &repo)
+	if err != nil {
+		return make(map[string]TopicEntry), false
+	}
 
-  return repo, true
+	return repo, true
 }
 
 func Fetch() (map[string]TopicEntry, bool) {
@@ -50,7 +50,7 @@ func Fetch() (map[string]TopicEntry, bool) {
 		return make(map[string]TopicEntry), false
 	}
 
-  return Unmarshal(content)
+	return Unmarshal(content)
 }
 
 func fuzzySearch(repo *map[string]TopicEntry, term string) []TopicEntry {

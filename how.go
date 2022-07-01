@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"how/client"
 	"how/repo"
 	"how/server"
-  "how/client"
 )
 
 func usage() {
@@ -36,7 +36,7 @@ const (
 	WRITE
 	WRITE_EDITOR
 	SERVE_REPO
-  PUSH
+	PUSH
 )
 
 func parseArgs() (ArgType, interface{}) {
@@ -56,8 +56,8 @@ func parseArgs() (ArgType, interface{}) {
 		} else if subargs[0] == "serve" && len(subargs) == 1 {
 			return SERVE_REPO, serveArgs{}
 		} else if subargs[0] == "push" && len(subargs) == 1 {
-      return PUSH, pushArgs{}
-    }
+			return PUSH, pushArgs{}
+		}
 	}
 
 	usage()
@@ -79,7 +79,7 @@ func main() {
 		repo.WriteEditor()
 	case SERVE_REPO:
 		server.StartHowServer()
-  case PUSH:
-    client.Push()
+	case PUSH:
+		client.Push()
 	}
 }
